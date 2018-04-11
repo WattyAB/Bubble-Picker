@@ -77,6 +77,14 @@ class BubblePicker : GLSurfaceView {
         attrs?.let { retrieveAttrubutes(attrs) }
     }
 
+    fun addItem(item: PickerItem) {
+        renderer.addItem(item)
+    }
+
+    fun removeItem(item: PickerItem) {
+        renderer.removeItem(item)
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {

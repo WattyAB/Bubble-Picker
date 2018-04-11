@@ -3,13 +3,19 @@ package com.igalata.bubblepickerdemo
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.widget.Toast
 import com.igalata.bubblepicker.BubblePickerListener
 import com.igalata.bubblepicker.adapter.BubblePickerAdapter
 import com.igalata.bubblepicker.model.BubbleGradient
 import com.igalata.bubblepicker.model.PickerItem
+import com.igalata.bubblepickerdemo.R.array.colors
+import com.igalata.bubblepickerdemo.R.array.images
+import com.igalata.bubblepickerdemo.R.id.picker
 import kotlinx.android.synthetic.main.activity_demo.*
 
 /**
@@ -59,8 +65,32 @@ class DemoActivity : AppCompatActivity() {
             }
         }
 
-        colors.recycle()
-        images.recycle()
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+
+            override fun run() {
+                this@DemoActivity.runOnUiThread {
+//                    picker.addItem(PickerItem().apply {
+//                        title = "test"
+//                        gradient = BubbleGradient(colors.getColor((1 * 2) % 8, 0),
+//                            colors.getColor((1 * 2) % 8 + 1, 0), BubbleGradient.VERTICAL)
+//                        typeface = mediumTypeface
+//                        textColor = ContextCompat.getColor(this@DemoActivity, android.R.color.white)
+//                        backgroundImage = ContextCompat.getDrawable(this@DemoActivity, images.getResourceId(0, 0))
+//
+//                    })
+
+                    picker.removeItem()
+
+
+                }
+                handler.postDelayed(this, 3000)
+            }
+        }
+
+        handler.postDelayed(runnable, 5000)
+        //colors.recycle()
+        //images.recycle()
 
         picker.bubbleSize = 20
         picker.listener = object : BubblePickerListener {

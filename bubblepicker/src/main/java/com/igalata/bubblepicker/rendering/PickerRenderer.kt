@@ -3,11 +3,14 @@ package com.igalata.bubblepicker.rendering
 import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView
+import android.util.Log
 import android.view.View
 import com.igalata.bubblepicker.*
 import com.igalata.bubblepicker.model.Color
 import com.igalata.bubblepicker.model.PickerItem
+import com.igalata.bubblepicker.physics.CircleBody
 import com.igalata.bubblepicker.physics.Engine
+import com.igalata.bubblepicker.physics.Engine.radius
 import com.igalata.bubblepicker.rendering.BubbleShader.A_POSITION
 import com.igalata.bubblepicker.rendering.BubbleShader.A_UV
 import com.igalata.bubblepicker.rendering.BubbleShader.U_BACKGROUND
@@ -50,11 +53,29 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     private var textureVertices: FloatArray? = null
     private var textureIds: IntArray? = null
 
+    private var hasNewItems = false
+
     private val scaleX: Float
         get() = if (glView.width < glView.height) glView.height.toFloat() / glView.width.toFloat() else 1f
     private val scaleY: Float
         get() = if (glView.width < glView.height) 1f else glView.width.toFloat() / glView.height.toFloat()
     private val circles = ArrayList<Item>()
+
+    fun addItem(pickerItem: PickerItem) {
+        synchronized(this) {
+            items.add(pickerItem)
+            hasNewItems = true
+        }
+    }
+
+    private var hasRemovedItems = false
+
+    fun removeItem(pickerItem: PickerItem) {
+        synchronized(this) {
+            items.remove(pickerItem)
+            hasRemovedItems = true
+        }
+    }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glClearColor(backgroundColor?.red ?: 1f, backgroundColor?.green ?: 1f,
@@ -68,6 +89,26 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
+        if (hasNewItems){
+            Log.d("PickerItem", "has new items")
+            val newBody = Engine.build(1, scaleX, scaleY).last()
+            circles.add(Item(items.last(), newBody))
+            textureIds = textureIds?.copyOf(circles.size * 2)
+
+            vertices = vertices?.copyOf(circles.size * 8)
+            textureVertices = textureVertices?.copyOf(circles.size * 8)
+
+            initializeItem(circles.last(), circles.size - 1)
+            verticesBuffer = vertices?.toFloatBuffer()
+            uvBuffer = textureVertices?.toFloatBuffer()
+            hasNewItems = false
+            Log.d("PickerItem", "circles.size: ${circles.size}, items.size: ${items.size}")
+        }
+        if (hasRemovedItems) {
+            Log.d("PickerItem", "has removed items")
+            circles.removeAll { !items.contains(it.pickerItem) }
+            hasRemovedItems = false
+        }
         calculateVertices()
         Engine.move()
         drawFrame()
