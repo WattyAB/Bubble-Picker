@@ -79,16 +79,22 @@ class DemoActivity : AppCompatActivity() {
 //                        backgroundImage = ContextCompat.getDrawable(this@DemoActivity, images.getResourceId(0, 0))
 //
 //                    })
+//
+//                    picker.removeItem()
 
-                    picker.removeItem()
-
-
+                    picker.items?.first()?.let {
+                        picker.resizeItem(it,100)
+                    }
                 }
-                handler.postDelayed(this, 3000)
+                handler.postDelayed({
+                    picker.items?.first()?.let {
+                        picker.resizeItem(it,50)
+                    }
+                }, 3000)
             }
         }
 
-        handler.postDelayed(runnable, 5000)
+        handler.postDelayed(runnable, 20000)
         //colors.recycle()
         //images.recycle()
 

@@ -5,6 +5,7 @@ import com.igalata.bubblepicker.sqr
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.World
 import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * Created by irinagalata on 1/26/17.
@@ -12,16 +13,17 @@ import java.util.*
 object Engine {
 
     val selectedBodies: List<CircleBody>
-        get() = bodies.filter { it.increased || it.toBeIncreased || it.isIncreasing }
+        get() = bodies.filter { it.hasBeenResized || it.toBeResized || it.isResizing }
     var maxSelectedCount: Int? = null
     var radius = 50
         set(value) {
             field = value
-            bubbleRadius = interpolate(0.1f, 0.25f, value / 100f)
+            bubbleRadius = getBubbleRadius(value)
             gravity = interpolate(20f, 80f, value / 100f)
             standardIncreasedGravity = interpolate(500f, 800f, value / 100f)
         }
     var centerImmediately = false
+
     private var standardIncreasedGravity = interpolate(500f, 800f, 0.5f)
     private var bubbleRadius = 0.17f
 
@@ -38,7 +40,7 @@ object Engine {
     private var gravityCenter = Vec2(0f, 0f)
     private val currentGravity: Float
         get() = if (touch) increasedGravity else gravity
-    private val toBeResized = ArrayList<Item>()
+    private val toBeResized = HashMap<Item, Int>()
     private val startX
         get() = if (centerImmediately) 0.5f else 2.2f
     private var stepsCount = 0
@@ -58,10 +60,14 @@ object Engine {
     }
 
     fun move() {
-        toBeResized.forEach { it.circleBody.resize(resizeStep) }
+        toBeResized.forEach {
+            it.key.circleBody.resizedRadius = getBubbleRadius(it.value)
+            it.key.circleBody.resize(resizeStep)
+        }
         world.step(if (centerImmediately) 0.035f else step, 11, 11)
         bodies.forEach { move(it) }
-        toBeResized.removeAll(toBeResized.filter { it.circleBody.finished })
+        toBeResized.keys.removeAll(toBeResized.filterKeys { it.circleBody.finished }.map { it.key })
+
         stepsCount++
         if (stepsCount >= 10) {
             centerImmediately = false
@@ -88,14 +94,14 @@ object Engine {
         bodies.clear()
     }
 
-    fun resize(item: Item): Boolean {
-        if (selectedBodies.size >= maxSelectedCount ?: bodies.size && !item.circleBody.increased) return false
+    fun resize(item: Item, finalSize: Int): Boolean {
+        if (selectedBodies.size >= maxSelectedCount ?: bodies.size && !item.circleBody.hasBeenResized) return false
 
-        if (item.circleBody.isBusy) return false
+        if (item.circleBody.isResizing) return false
 
         item.circleBody.defineState()
 
-        toBeResized.add(item)
+        toBeResized[item] = finalSize
 
         return true
     }
@@ -112,7 +118,7 @@ object Engine {
             body.isVisible = centerImmediately.not()
             val direction = gravityCenter.sub(position)
             val distance = direction.length()
-            val gravity = if (body.increased) 1.3f * currentGravity else currentGravity
+            val gravity = if (body.hasBeenResized) 1.3f * currentGravity else currentGravity
             if (distance > step * 200) {
                 applyForce(direction.mul(gravity / distance.sqr()), position)
             }
@@ -120,5 +126,7 @@ object Engine {
     }
 
     private fun interpolate(start: Float, end: Float, f: Float) = start + f * (end - start)
+
+    private fun getBubbleRadius(value: Int) = interpolate(0.1f, 0.25f, value / 100f)
 
 }

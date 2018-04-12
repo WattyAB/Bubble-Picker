@@ -7,27 +7,18 @@ import org.jbox2d.dynamics.*
 /**
  * Created by irinagalata on 1/26/17.
  */
-class CircleBody(val world: World, var position: Vec2, var radius: Float, var increasedRadius: Float, var density: Float) {
+class CircleBody(val world: World, var position: Vec2, val startingRadius: Float, var resizedRadius: Float, var density: Float) {
 
-    val decreasedRadius: Float = radius
+    var currentRadius: Float = startingRadius
 
-    var isIncreasing = false
-
-    var isDecreasing = false
-
-    var toBeIncreased = false
-
-    var toBeDecreased = false
+    var isResizing = false
+    var toBeResized = false
+    var hasBeenResized = false
 
     val finished: Boolean
-        get() = !toBeIncreased && !toBeDecreased && !isIncreasing && !isDecreasing
-
-    val isBusy: Boolean
-        get() = isIncreasing || isDecreasing
+        get() = !toBeResized && !isResizing
 
     lateinit var physicalBody: Body
-
-    var increased = false
 
     var isVisible = true
 
@@ -35,7 +26,7 @@ class CircleBody(val world: World, var position: Vec2, var radius: Float, var in
     private val damping = 25f
     private val shape: CircleShape
         get() = CircleShape().apply {
-            m_radius = radius + margin
+            m_radius = currentRadius + margin
             m_p.setZero()
         }
 
@@ -67,44 +58,30 @@ class CircleBody(val world: World, var position: Vec2, var radius: Float, var in
         }
     }
 
-    fun resize(step: Float) = if (increased) decrease(step) else increase(step)
+    fun resize(step: Float) {
 
-    fun decrease(step: Float) {
-        isDecreasing = true
-        radius -= step
+        isResizing = true
+
+        if (resizedRadius > currentRadius) currentRadius += step else currentRadius -= step
         reset()
 
-        if (Math.abs(radius - decreasedRadius) < step) {
-            increased = false
-            clear()
-        }
-    }
-
-    fun increase(step: Float) {
-        isIncreasing = true
-        radius += step
-        reset()
-
-        if (Math.abs(radius - increasedRadius) < step) {
-            increased = true
+        if (Math.abs(currentRadius - resizedRadius) < step) {
+            hasBeenResized = true
             clear()
         }
     }
 
     private fun reset() {
-        physicalBody.fixtureList?.shape?.m_radius = radius + margin
+        physicalBody.fixtureList?.shape?.m_radius = currentRadius + margin
     }
 
     fun defineState() {
-        toBeIncreased = !increased
-        toBeDecreased = increased
+        toBeResized = !hasBeenResized
     }
 
     private fun clear() {
-        toBeIncreased = false
-        toBeDecreased = false
-        isIncreasing = false
-        isDecreasing = false
+        toBeResized = false
+        isResizing = false
     }
 
 }

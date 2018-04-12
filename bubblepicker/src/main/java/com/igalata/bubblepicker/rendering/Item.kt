@@ -26,7 +26,7 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
         get() = circleBody.physicalBody.position.y
 
     val radius: Float
-        get() = circleBody.radius
+        get() = circleBody.currentRadius
 
     val initialPosition: Vec2
         get() = circleBody.position
@@ -39,7 +39,7 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
     private var texture: Int = 0
     private var imageTexture: Int = 0
     private val currentTexture: Int
-        get() = if (circleBody.increased || circleBody.isIncreasing) imageTexture else texture
+        get() = if (circleBody.hasBeenResized || circleBody.isResizing) imageTexture else texture
     private val bitmapSize = 256f
     private val gradient: LinearGradient?
         get() {

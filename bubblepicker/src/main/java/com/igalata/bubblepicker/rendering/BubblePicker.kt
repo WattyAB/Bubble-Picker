@@ -22,12 +22,10 @@ class BubblePicker : GLSurfaceView {
             field = value
             renderer.backgroundColor = Color(value)
         }
-    @Deprecated(level = DeprecationLevel.WARNING,
-            message = "Use BubblePickerAdapter for the view setup instead")
+
     var items: ArrayList<PickerItem>? = null
-        set(value) {
-            field = value
-            renderer.items = value ?: ArrayList()
+        get() {
+            return renderer.items
         }
     var adapter: BubblePickerAdapter? = null
         set(value) {
@@ -83,6 +81,10 @@ class BubblePicker : GLSurfaceView {
 
     fun removeItem(item: PickerItem) {
         renderer.removeItem(item)
+    }
+
+    fun resizeItem(item: PickerItem, newSize: Int) {
+        renderer.resizeItem(item, newSize)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
