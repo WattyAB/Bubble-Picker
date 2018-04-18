@@ -43,12 +43,6 @@ class BubblePicker : GLSurfaceView {
         set(value) {
             renderer.listener = value
         }
-    var bubbleSize = 50
-        set(value) {
-            if (value in 1..100) {
-                renderer.bubbleSize = value
-            }
-        }
     val selectedItems: List<PickerItem?>
         get() = renderer.selectedItems
 
@@ -83,7 +77,7 @@ class BubblePicker : GLSurfaceView {
         renderer.removeItem(item)
     }
 
-    fun resizeItem(item: PickerItem, newSize: Int) {
+    fun resizeItem(item: PickerItem, newSize: Float) {
         renderer.resizeItem(item, newSize)
     }
 
@@ -96,7 +90,7 @@ class BubblePicker : GLSurfaceView {
                 previousY = event.y
             }
             MotionEvent.ACTION_UP -> {
-                if (isClick(event)) renderer.resize(event.x, event.y)
+                //if (isClick(event)) renderer.resize(event.x, event.y)
                 renderer.release()
             }
             MotionEvent.ACTION_MOVE -> {

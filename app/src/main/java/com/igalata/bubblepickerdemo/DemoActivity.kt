@@ -99,12 +99,12 @@ class DemoActivity : AppCompatActivity() {
                     //picker.removeItem()
 
                     picker.items?.first()?.let {
-                        picker.resizeItem(it,100)
+                        picker.resizeItem(it,70f)
                     }
                 }
                 handler.postDelayed({
                     picker.items?.first()?.let {
-                        picker.resizeItem(it,50)
+                        picker.resizeItem(it,30f)
                     }
                 }, 3000)
             }
@@ -114,7 +114,6 @@ class DemoActivity : AppCompatActivity() {
         //colors.recycle()
         //images.recycle()
 
-        picker.bubbleSize = 20
         picker.listener = object : BubblePickerListener {
             override fun onBubbleSelected(item: PickerItem) = toast("${item.title} selected")
 

@@ -6,17 +6,14 @@ import android.opengl.GLSurfaceView
 import android.util.Log
 import android.view.View
 import com.igalata.bubblepicker.*
-import com.igalata.bubblepicker.R.attr.backgroundColor
 import com.igalata.bubblepicker.model.Color
 import com.igalata.bubblepicker.model.PickerItem
 import com.igalata.bubblepicker.physics.Engine
-import com.igalata.bubblepicker.physics.Engine.centerImmediately
 import com.igalata.bubblepicker.rendering.BubbleShader.A_POSITION
 import com.igalata.bubblepicker.rendering.BubbleShader.A_UV
 import com.igalata.bubblepicker.rendering.BubbleShader.U_BACKGROUND
 import com.igalata.bubblepicker.rendering.BubbleShader.fragmentShader
 import com.igalata.bubblepicker.rendering.BubbleShader.vertexShader
-import org.jbox2d.common.Vec2
 import java.nio.FloatBuffer
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
@@ -31,10 +28,6 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     var maxSelectedCount: Int? = null
         set(value) {
             Engine.maxSelectedCount = value
-        }
-    var bubbleSize = 50
-        set(value) {
-            Engine.radius = value
         }
     var listener: BubblePickerListener? = null
     var items = ArrayList<PickerItem>()
@@ -57,9 +50,9 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     private var hasItemsToRemove = false
     private var hasItemsToResize = false
 
-    private val resizedItems = hashMapOf<PickerItem, Int>()
     private val newItems = mutableListOf<PickerItem>()
     private val removedItems = mutableListOf<PickerItem>()
+    private val resizedItems = hashMapOf<PickerItem, Float>()
 
     private val scaleX: Float
         get() = if (glView.width < glView.height) glView.height.toFloat() / glView.width.toFloat() else 1f
@@ -81,7 +74,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
         }
     }
 
-    fun resizeItem(pickerItem: PickerItem, newSize: Int) {
+    fun resizeItem(pickerItem: PickerItem, newSize: Float) {
         synchronized(this) {
             resizedItems[pickerItem] = newSize
             hasItemsToResize = true
@@ -162,10 +155,11 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     private fun initialize() {
         clear()
         Engine.centerImmediately = centerImmediately
+        Engine.createBorders(scaleX, scaleY)
         Engine.build(items.size, scaleX, scaleY).forEachIndexed { index, body ->
             circles.add(Item(items[index], body))
         }
-        items.forEach { if (it.isSelected) Engine.resize(circles.first { circle -> circle.pickerItem == it }, bubbleSize) }
+        items.forEach { if (it.isSelected) Engine.resize(circles.first { circle -> circle.pickerItem == it }, 50F) }
         if (textureIds == null) textureIds = IntArray(circles.size * 2)
         initializeArrays()
     }
@@ -236,23 +230,22 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
     fun release() = Engine.release()
 
-    private fun getItem(position: Vec2) = position.let {
-        val x = it.x.convertPoint(glView.width, scaleX)
-        val y = it.y.convertPoint(glView.height, scaleY)
-        circles.find { Math.sqrt(((x - it.x).sqr() + (y - it.y).sqr()).toDouble()) <= it.radius }
-    }
+//    private fun getItem(position: Vec2) = position.let {
+//        val x = it.x.convertPoint(glView.width, scaleX)
+//        val y = it.y.convertPoint(glView.height, scaleY)
+//        circles.find { Math.sqrt(((x - it.x).sqr() + (y - it.y).sqr()).toDouble()) <= it.radius }
+//    }
 
-    fun resize(x: Float, y: Float) = getItem(Vec2(x, glView.height - y))?.apply {
-        if (Engine.resize(this, bubbleSize)) {
-            listener?.let {
-                if (circleBody.hasBeenResized) it.onBubbleDeselected(pickerItem) else it.onBubbleSelected(pickerItem)
-            }
-        }
-    }
+//    fun resize(x: Float, y: Float) = getItem(Vec2(x, glView.height - y))?.apply {
+//        if (Engine.resize(this, bubbleSize)) {
+//            listener?.let {
+//                if (circleBody.hasBeenResized) it.onBubbleDeselected(pickerItem) else it.onBubbleSelected(pickerItem)
+//            }
+//        }
+//    }
 
     private fun clear() {
         circles.clear()
         Engine.clear()
     }
-
 }

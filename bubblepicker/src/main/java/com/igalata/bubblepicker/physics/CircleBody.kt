@@ -7,10 +7,7 @@ import org.jbox2d.dynamics.*
 /**
  * Created by irinagalata on 1/26/17.
  */
-class CircleBody(val world: World, var position: Vec2, val startingRadius: Float, var resizedRadius: Float, var density: Float) {
-
-    var currentRadius: Float = startingRadius
-
+class CircleBody(val world: World, val position: Vec2, var currentRadius: Float, val density: Float) {
     var isResizing = false
     var toBeResized = false
     var hasBeenResized = false
@@ -19,8 +16,6 @@ class CircleBody(val world: World, var position: Vec2, val startingRadius: Float
         get() = !toBeResized && !isResizing
 
     lateinit var physicalBody: Body
-
-    var isVisible = true
 
     private val margin = 0.01f
     private val damping = 25f
@@ -58,11 +53,15 @@ class CircleBody(val world: World, var position: Vec2, val startingRadius: Float
         }
     }
 
-    fun resize(step: Float) {
-
+    fun resize(resizedRadius: Float, step: Float) {
         isResizing = true
 
-        if (resizedRadius > currentRadius) currentRadius += step else currentRadius -= step
+        if (resizedRadius > currentRadius) {
+            currentRadius += step
+        } else {
+            currentRadius -= step
+        }
+
         reset()
 
         if (Math.abs(currentRadius - resizedRadius) < step) {
@@ -83,5 +82,4 @@ class CircleBody(val world: World, var position: Vec2, val startingRadius: Float
         toBeResized = false
         isResizing = false
     }
-
 }
