@@ -37,7 +37,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
             Engine.radius = value
         }
     var listener: BubblePickerListener? = null
-    lateinit var items: ArrayList<PickerItem>
+    var items = ArrayList<PickerItem>()
     val selectedItems: List<PickerItem?>
         get() = Engine.selectedBodies.map { circles.firstOrNull { circle -> circle.circleBody == it }?.pickerItem }
     var centerImmediately = false
@@ -53,11 +53,13 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     private var textureVertices: FloatArray? = null
     private var textureIds: IntArray? = null
 
-    private var hasNewItems = false
-    private var hasRemovedItems = false
-    private var hasResizedItems = false
+    private var hasItemsToAdd = false
+    private var hasItemsToRemove = false
+    private var hasItemsToResize = false
 
     private val resizedItems = hashMapOf<PickerItem, Int>()
+    private val newItems = mutableListOf<PickerItem>()
+    private val removedItems = mutableListOf<PickerItem>()
 
     private val scaleX: Float
         get() = if (glView.width < glView.height) glView.height.toFloat() / glView.width.toFloat() else 1f
@@ -67,22 +69,22 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
     fun addItem(pickerItem: PickerItem) {
         synchronized(this) {
-            items.add(pickerItem)
-            hasNewItems = true
+            newItems.add(pickerItem)
+            hasItemsToAdd = true
         }
     }
 
     fun removeItem(pickerItem: PickerItem) {
         synchronized(this) {
-            items.remove(pickerItem)
-            hasRemovedItems = true
+            removedItems.add(pickerItem)
+            hasItemsToRemove = true
         }
     }
 
     fun resizeItem(pickerItem: PickerItem, newSize: Int) {
-        synchronized(resizedItems) {
+        synchronized(this) {
             resizedItems[pickerItem] = newSize
-            hasResizedItems = true
+            hasItemsToResize = true
         }
     }
 
@@ -98,36 +100,63 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        if (hasNewItems){
-            Log.d("PickerItem", "has new items")
-            val newBody = Engine.build(1, scaleX, scaleY).last()
-            circles.add(Item(items.last(), newBody))
-            textureIds = textureIds?.copyOf(circles.size * 2)
-
-            vertices = vertices?.copyOf(circles.size * 8)
-            textureVertices = textureVertices?.copyOf(circles.size * 8)
-
-            initializeItem(circles.last(), circles.size - 1)
-            verticesBuffer = vertices?.toFloatBuffer()
-            uvBuffer = textureVertices?.toFloatBuffer()
-            hasNewItems = false
-            Log.d("PickerItem", "circles.size: ${circles.size}, items.size: ${items.size}")
-        }
-        if (hasRemovedItems) {
-            Log.d("PickerItem", "has removed items")
-            circles.removeAll { !items.contains(it.pickerItem) }
-            hasRemovedItems = false
-        }
-        if (hasResizedItems) {
-            Log.d("PickerItem", "has hasBeenResized items: ${resizedItems.size}")
-            resizedItems.forEach { (item, finalSize) ->
-                Engine.resize(circles.first { it.pickerItem == item }, finalSize)
+        synchronized(this) {
+            if (hasItemsToAdd) {
+                Log.d("PickerRenderer", "has new items: ${newItems.count()}")
+                newItems.forEach {
+                    val newBody = Engine.build(1, scaleX, scaleY).last()
+                    circles.add(Item(it, newBody))
+                    items.add(it)
+                }
+                resizeArrays()
+                newItems.forEach { pickerItem ->
+                    val circle = circles.first { it.pickerItem == pickerItem }
+                    initializeItem(circle, circles.indexOf(circle))
+                }
+                updateBuffers()
+                newItems.clear()
+                hasItemsToAdd = false
+                Log.d("PickerRenderer", "circles.count: ${circles.size}, items.size: ${items.size}")
             }
-            hasResizedItems = false
+        }
+        synchronized(this) {
+            if (hasItemsToRemove) {
+                Log.d("PickerRenderer", "has removed items: ${removedItems.count()}")
+                circles.removeAll { removedItems.contains(it.pickerItem) }
+                items.removeAll(removedItems)
+                removedItems.clear()
+                resizeArrays()
+                updateBuffers()
+                hasItemsToRemove = false
+            }
+        }
+        synchronized(this) {
+            if (hasItemsToResize) {
+                //Log.d("PickerRenderer", "has hasBeenResized items: ${resizedItems.count()}")
+                resizedItems.forEach { (item, finalSize) ->
+                    circles.firstOrNull { it.pickerItem == item }?.let {
+                        Engine.resize(it, finalSize)
+                    }
+                }
+                hasItemsToResize = false
+            }
         }
         calculateVertices()
         Engine.move()
         drawFrame()
+    }
+
+    private fun resizeArrays() {
+        textureIds = textureIds?.copyOf(circles.size * 2)
+
+        vertices = vertices?.copyOf(circles.size * 8)
+        textureVertices = textureVertices?.copyOf(circles.size * 8)
+
+    }
+
+    private fun updateBuffers() {
+        verticesBuffer = vertices?.toFloatBuffer()
+        uvBuffer = textureVertices?.toFloatBuffer()
     }
 
     private fun initialize() {

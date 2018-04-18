@@ -65,22 +65,38 @@ class DemoActivity : AppCompatActivity() {
             }
         }
 
+//        for (position in 0 until titles.size) {
+//            picker.addItem(PickerItem().apply {
+//                title = titles[position]
+//                gradient = BubbleGradient(
+//                    colors.getColor((position * 2) % 8, 0),
+//                    colors.getColor((position * 2) % 8 + 1, 0), BubbleGradient.VERTICAL
+//                )
+//                typeface = mediumTypeface
+//                textColor = ContextCompat.getColor(this@DemoActivity, android.R.color.white)
+//                backgroundImage = ContextCompat.getDrawable(
+//                    this@DemoActivity,
+//                    images.getResourceId(position, 0)
+//                )
+//            })
+//        }
+
         val handler = Handler(Looper.getMainLooper())
         val runnable = object : Runnable {
 
             override fun run() {
                 this@DemoActivity.runOnUiThread {
-//                    picker.addItem(PickerItem().apply {
-//                        title = "test"
-//                        gradient = BubbleGradient(colors.getColor((1 * 2) % 8, 0),
-//                            colors.getColor((1 * 2) % 8 + 1, 0), BubbleGradient.VERTICAL)
-//                        typeface = mediumTypeface
-//                        textColor = ContextCompat.getColor(this@DemoActivity, android.R.color.white)
-//                        backgroundImage = ContextCompat.getDrawable(this@DemoActivity, images.getResourceId(0, 0))
-//
-//                    })
-//
-//                    picker.removeItem()
+                    picker.addItem(PickerItem().apply {
+                        title = "test"
+                        gradient = BubbleGradient(colors.getColor((1 * 2) % 8, 0),
+                            colors.getColor((1 * 2) % 8 + 1, 0), BubbleGradient.VERTICAL)
+                        typeface = mediumTypeface
+                        textColor = ContextCompat.getColor(this@DemoActivity, android.R.color.white)
+                        backgroundImage = ContextCompat.getDrawable(this@DemoActivity, images.getResourceId(0, 0))
+
+                    })
+
+                    //picker.removeItem()
 
                     picker.items?.first()?.let {
                         picker.resizeItem(it,100)
