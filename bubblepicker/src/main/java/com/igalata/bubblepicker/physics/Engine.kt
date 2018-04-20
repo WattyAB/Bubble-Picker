@@ -17,6 +17,8 @@ object Engine {
     var centerImmediately = false
 
     private var standardIncreasedGravity = interpolate(500f, 800f, 0.5f)
+    private var increasedGravity = 55f
+
     private var defaultRadius = 0.17f
 
     private val world = World(Vec2(0f, 0f), false)
@@ -59,7 +61,7 @@ object Engine {
     fun swipe(x: Float, y: Float) {
         if (Math.abs(gravityCenter.x) < 2) gravityCenter.x += -x
         if (Math.abs(gravityCenter.y) < 0.5f / scaleY) gravityCenter.y += y
-        //increasedGravity = standardIncreasedGravity * Math.abs(x * 13) * Math.abs(y * 13)
+        increasedGravity = standardIncreasedGravity * Math.abs(x * 13) * Math.abs(y * 13)
         touch = true
     }
 
@@ -109,9 +111,9 @@ object Engine {
 
     private fun getGravity(radius: Float): Float {
         return if (touch) {
-            interpolate(20f, 80f, radius / 100f)
+            increasedGravity
         } else {
-            interpolate(500f, 800f, radius / 100f)
+            interpolate(20f, 80f, radius / 100f)
         }
     }
 
