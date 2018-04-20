@@ -22,10 +22,10 @@ object Engine {
     private var defaultRadius = 0.17f
 
     private val world = World(Vec2(0f, 0f), false)
-    private const val step = 0.0005f
+    private const val moveStep = 0.0001f
     private val bodies: ArrayList<CircleBody> = ArrayList()
     private var borders: ArrayList<Border> = ArrayList()
-    private val resizeStep = 0.005f
+    private val resizeStep = 0.001f
     private var scaleY = 0f
     private var touch = false
     private var gravityCenter = Vec2(0f, 0f)
@@ -48,7 +48,7 @@ object Engine {
         toBeResized.forEach {
             it.key.circleBody.resize(getBubbleRadius(it.value), resizeStep)
         }
-        world.step(if (centerImmediately) 0.035f else step, 11, 11)
+        world.step(if (centerImmediately) 0.035f else moveStep, 11, 11)
         bodies.forEach { move(it) }
         toBeResized.keys.removeAll(toBeResized.filterKeys { it.circleBody.finished }.map { it.key })
 
@@ -103,7 +103,7 @@ object Engine {
             val direction = gravityCenter.sub(position)
             val distance = direction.length()
             val gravity = getGravity(body.currentRadius)
-            if (distance > step * 200) {
+            if (distance > moveStep * 200) {
                 applyForce(direction.mul(gravity / distance.sqr()), position)
             }
         }
