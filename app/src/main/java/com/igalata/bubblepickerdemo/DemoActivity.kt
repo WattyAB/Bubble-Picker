@@ -99,7 +99,7 @@ class DemoActivity : AppCompatActivity() {
                     //picker.removeItem()
 
                     picker.items?.first()?.let {
-                        picker.resizeItem(it,70f)
+                        picker.resizeItem(it,100f)
                     }
                 }
                 handler.postDelayed({
@@ -110,7 +110,7 @@ class DemoActivity : AppCompatActivity() {
             }
         }
 
-        handler.postDelayed(runnable, 20000)
+        handler.postDelayed(runnable, 5000)
         //colors.recycle()
         //images.recycle()
 
