@@ -1,5 +1,7 @@
 package com.igalata.bubblepicker.physics
 
+import android.util.Log
+import com.igalata.bubblepicker.physics.Engine.centerImmediately
 import com.igalata.bubblepicker.rendering.Item
 import com.igalata.bubblepicker.sqr
 import org.jbox2d.common.Vec2
@@ -12,7 +14,7 @@ import kotlin.collections.HashMap
  */
 object Engine {
     val selectedBodies: List<CircleBody>
-        get() = bodies.filter { it.hasBeenResized || it.toBeResized || it.isResizing }
+        get() = emptyList() //bodies.filter { it.hasBeenResized || it.toBeResized || it.isResizing }
     var maxSelectedCount: Int? = null
     var centerImmediately = false
 
@@ -23,7 +25,7 @@ object Engine {
 
     private val world = World(Vec2(0f, 0f), false)
     private const val moveStep = 0.0001f
-    private val bodies: ArrayList<CircleBody> = ArrayList()
+    //private val bodies: ArrayList<CircleBody> = ArrayList()
     private var borders: ArrayList<Border> = ArrayList()
     private val resizeStep = 0.001f
     private var scaleY = 0f
@@ -35,16 +37,19 @@ object Engine {
 
     fun build(bodiesCount: Int, scaleX: Float, scaleY: Float): List<CircleBody> {
         val density = interpolate(0.8f, 0.2f, 0.5f)
+
+        val bodies = mutableListOf<CircleBody>()
         for (i in 0..bodiesCount - 1) {
             val x = if (Random().nextBoolean()) -startX else startX
             val y = if (Random().nextBoolean()) -0.5f / scaleY else 0.5f / scaleY
             bodies.add(CircleBody(world, Vec2(x, y), defaultRadius * scaleX, density))
         }
 
+        Log.d("Engine", "bodies: ${bodies.size}")
         return bodies
     }
 
-    fun move() {
+    fun move(bodies: List<CircleBody>) {
         toBeResized.forEach {
             it.key.circleBody.resize(getBubbleRadius(it.value), resizeStep)
         }
@@ -71,14 +76,14 @@ object Engine {
     }
 
     fun clear() {
-        borders.forEach { world.destroyBody(it.itemBody) }
-        bodies.forEach { world.destroyBody(it.physicalBody) }
-        borders.clear()
-        bodies.clear()
+        synchronized(this) {
+            borders.forEach { world.destroyBody(it.itemBody) }
+            borders.clear()
+        }
     }
 
     fun resize(item: Item, finalSize: Float): Boolean {
-        if (selectedBodies.size >= maxSelectedCount ?: bodies.size && !item.circleBody.hasBeenResized) return false
+        //if (selectedBodies.size >= maxSelectedCount ?: bodies.size && !item.circleBody.hasBeenResized) return false
 
         if (item.circleBody.isResizing) return false
 
@@ -91,11 +96,15 @@ object Engine {
 
     fun createBorders(scaleX: Float, scaleY: Float) {
         borders = arrayListOf(
-                Border(world, Vec2(0f, 0.5f / scaleY), Border.HORIZONTAL),
-                Border(world, Vec2(0f, -0.5f / scaleY), Border.HORIZONTAL),
-                Border(world, Vec2(0.5f / scaleX, 0f), Border.VERTICAL),
-                Border(world, Vec2(-0.5f / scaleX, 0f), Border.VERTICAL)
+            Border(world, Vec2(0f, 0.5f / scaleY), Border.HORIZONTAL),
+            Border(world, Vec2(0f, -0.5f / scaleY), Border.HORIZONTAL),
+            Border(world, Vec2(0.5f / scaleX, 0f), Border.VERTICAL),
+            Border(world, Vec2(-0.5f / scaleX, 0f), Border.VERTICAL)
         )
+    }
+
+    fun destroyBody(circleBody: CircleBody) {
+        world.destroyBody(circleBody.physicalBody)
     }
 
     private fun move(body: CircleBody) {
@@ -120,5 +129,4 @@ object Engine {
     private fun interpolate(start: Float, end: Float, f: Float) = start + f * (end - start)
 
     private fun getBubbleRadius(value: Float) = interpolate(0.1f, 0.25f, value / 100f)
-
 }

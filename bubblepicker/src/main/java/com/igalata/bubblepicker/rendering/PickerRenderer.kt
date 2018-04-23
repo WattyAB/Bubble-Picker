@@ -115,8 +115,14 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
         synchronized(this) {
             if (hasItemsToRemove) {
                 Log.d("PickerRenderer", "has removed items: ${removedItems.count()}")
-                circles.removeAll { removedItems.contains(it.pickerItem) }
-                items.removeAll(removedItems)
+                removedItems.forEach { pickerItem ->
+                    circles.firstOrNull { pickerItem == it.pickerItem }?.let{
+
+                        Engine.destroyBody(it.circleBody)
+                        circles.remove(it)
+                    }
+                    items.remove(pickerItem)
+                }
                 removedItems.clear()
                 resizeArrays()
                 updateBuffers()
@@ -135,7 +141,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
             }
         }
         calculateVertices()
-        Engine.move()
+        Engine.move(circles.map { it.circleBody })
         drawFrame()
     }
 
@@ -144,7 +150,6 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
         vertices = vertices?.copyOf(circles.size * 8)
         textureVertices = textureVertices?.copyOf(circles.size * 8)
-
     }
 
     private fun updateBuffers() {
@@ -245,6 +250,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 //    }
 
     private fun clear() {
+        circles.forEach { Engine.destroyBody(it.circleBody) }
         circles.clear()
         Engine.clear()
     }
