@@ -24,10 +24,11 @@ object Engine {
     private var defaultRadius = 0.17f
 
     private val world = World(Vec2(0f, 0f), false)
-    private const val moveStep = 0.0001f
-    //private val bodies: ArrayList<CircleBody> = ArrayList()
-    private var borders: ArrayList<Border> = ArrayList()
+    private const val moveStep = 0.0005f
     private val resizeStep = 0.001f
+
+    private var borders: ArrayList<Border> = ArrayList()
+
     private var scaleY = 0f
     private var touch = false
     private var gravityCenter = Vec2(0f, 0f)
@@ -122,7 +123,7 @@ object Engine {
         return if (touch) {
             increasedGravity
         } else {
-            interpolate(20f, 80f, radius / 100f)
+            interpolate(50f, 100f, radius / 100f)
         }
     }
 
