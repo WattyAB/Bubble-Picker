@@ -37,7 +37,7 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
     private var texture: Int = 0
     private var imageTexture: Int = 0
     private val currentTexture: Int
-        get() = if (circleBody.hasBeenResized || circleBody.isResizing) imageTexture else texture
+        get() = if (circleBody.currentRadius > 0.17) imageTexture else texture
     private val bitmapSize = 256f
     private val gradient: LinearGradient?
         get() {
@@ -62,30 +62,30 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
 
     fun bindTextures(textureIds: IntArray, index: Int) {
         texture = bindTexture(textureIds, index * 2, false)
-        imageTexture = bindTexture(textureIds, index * 2 + 1, false)
+        imageTexture = bindTexture(textureIds, index * 2 + 1, true)
     }
 
-    private fun createBitmap(isSelected: Boolean): Bitmap {
+    private fun createBitmap(withText: Boolean): Bitmap {
         var bitmap = Bitmap.createBitmap(bitmapSize.toInt(), bitmapSize.toInt(), Bitmap.Config.ARGB_4444)
         val bitmapConfig: Bitmap.Config = bitmap.config ?: Bitmap.Config.ARGB_8888
         bitmap = bitmap.copy(bitmapConfig, true)
 
         val canvas = Canvas(bitmap)
 
-        if (isSelected) drawImage(canvas)
-        drawBackground(canvas, isSelected)
-        drawIcon(canvas)
-        drawText(canvas)
+        // if (isSelected) drawImage(canvas)
+        drawBackground(canvas)
+        drawIcon(canvas, withText)
+        if (withText) drawText(canvas)
 
         return bitmap
     }
 
-    private fun drawBackground(canvas: Canvas, withImage: Boolean) {
+    private fun drawBackground(canvas: Canvas) {
         val bgPaint = Paint()
         bgPaint.style = Paint.Style.FILL
         pickerItem.color?.let { bgPaint.color = it }
         pickerItem.gradient?.let { bgPaint.shader = gradient }
-        if (withImage) bgPaint.alpha = (pickerItem.overlayAlpha * 255).toInt()
+        // if (withImage) bgPaint.alpha = (pickerItem.overlayAlpha * 255).toInt()
         canvas.drawRect(0f, 0f, bitmapSize, bitmapSize, bgPaint)
     }
 
@@ -93,12 +93,12 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
         if (pickerItem.title == null || pickerItem.textColor == null) return
 
         val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = pickerItem.textColor!!
+            color = pickerItem.textColor
             textSize = pickerItem.textSize
             typeface = pickerItem.typeface
         }
 
-        val maxTextHeight = if (pickerItem.icon == null) bitmapSize / 2f else bitmapSize / 2.7f
+        val maxTextHeight = bitmapSize / 2.7f
 
         var textLayout = placeText(paint)
 
@@ -110,7 +110,7 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
         if (pickerItem.icon == null) {
             canvas.translate((bitmapSize - textLayout.width) / 2f, (bitmapSize - textLayout.height) / 2f)
         } else if (pickerItem.iconOnTop) {
-            canvas.translate((bitmapSize - textLayout.width) / 2f, bitmapSize / 2f)
+            canvas.translate((bitmapSize - textLayout.width) / 2f, bitmapSize / 2f + 20)
         } else {
             canvas.translate((bitmapSize - textLayout.width) / 2f, bitmapSize / 2 - textLayout.height)
         }
@@ -119,11 +119,11 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
     }
 
     private fun placeText(paint: TextPaint): StaticLayout {
-        return StaticLayout(pickerItem.title, paint, (bitmapSize * 0.9).toInt(),
-                Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false)
+        return StaticLayout(pickerItem.title, paint, (bitmapSize * 0.7).toInt(),
+                Layout.Alignment.ALIGN_CENTER, 1.0f, 5f, false)
     }
 
-    private fun drawIcon(canvas: Canvas) {
+    private fun drawIcon(canvas: Canvas, withText: Boolean) {
         pickerItem.icon?.let {
             val width = it.intrinsicWidth
             val height = it.intrinsicHeight
@@ -131,10 +131,10 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
             val left = (bitmapSize / 2 - width / 2).toInt()
             val right = (bitmapSize / 2 + width / 2).toInt()
 
-            if (pickerItem.title == null) {
+            if (withText.not()) {
                 it.bounds = Rect(left, (bitmapSize / 2 - height / 2).toInt(), right, (bitmapSize / 2 + height / 2).toInt())
             } else if (pickerItem.iconOnTop) {
-                it.bounds = Rect(left, (bitmapSize / 2 - height).toInt(), right, (bitmapSize / 2).toInt())
+                it.bounds = Rect(left, (bitmapSize / 2 - height + 15).toInt(), right, (bitmapSize / 2).toInt() + 15)
             } else {
                 it.bounds = Rect(left, (bitmapSize / 2).toInt(), right, (bitmapSize / 2 + height).toInt())
             }
