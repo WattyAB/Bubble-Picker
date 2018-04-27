@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView
 import android.support.annotation.ColorInt
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.SurfaceHolder
 import com.igalata.bubblepicker.BubblePickerListener
 import com.igalata.bubblepicker.R
 import com.igalata.bubblepicker.adapter.BubblePickerAdapter
@@ -79,6 +80,11 @@ class BubblePicker : GLSurfaceView {
 
     fun resizeItem(item: PickerItem, newSize: Float) {
         renderer.resizeItem(item, newSize)
+    }
+
+    override fun surfaceDestroyed(holder: SurfaceHolder?) {
+        renderer.clear()
+        super.surfaceDestroyed(holder)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

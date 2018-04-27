@@ -249,9 +249,20 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 //        }
 //    }
 
-    private fun clear() {
-        circles.forEach { Engine.destroyBody(it.circleBody) }
-        circles.clear()
-        Engine.clear()
+    fun clear() {
+        synchronized(this) {
+            circles.forEach { Engine.destroyBody(it.circleBody) }
+            circles.clear()
+            items.clear()
+            newItems.clear()
+            removedItems.clear()
+            resizedItems.clear()
+            verticesBuffer = null
+            uvBuffer = null
+            vertices = null
+            textureVertices = null
+            textureIds = null
+            Engine.clear()
+        }
     }
 }
