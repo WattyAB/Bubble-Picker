@@ -125,8 +125,8 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody) {
 
     private fun drawIcon(canvas: Canvas, withText: Boolean) {
         pickerItem.icon?.let {
-            val width = it.intrinsicWidth
-            val height = it.intrinsicHeight
+            val width = 105
+            val height = 105
 
             val left = (bitmapSize / 2 - width / 2).toInt()
             val right = (bitmapSize / 2 + width / 2).toInt()
