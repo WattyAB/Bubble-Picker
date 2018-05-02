@@ -96,7 +96,7 @@ class BubblePicker : GLSurfaceView {
                 previousY = event.y
             }
             MotionEvent.ACTION_UP -> {
-                //if (isClick(event)) renderer.resize(event.x, event.y)
+                if (isClick(event)) renderer.onClick(event.x, event.y)
                 renderer.release()
             }
             MotionEvent.ACTION_MOVE -> {
