@@ -14,6 +14,7 @@ import com.igalata.bubblepicker.rendering.BubbleShader.A_UV
 import com.igalata.bubblepicker.rendering.BubbleShader.U_BACKGROUND
 import com.igalata.bubblepicker.rendering.BubbleShader.fragmentShader
 import com.igalata.bubblepicker.rendering.BubbleShader.vertexShader
+import org.jbox2d.common.Vec2
 import java.nio.FloatBuffer
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
@@ -82,8 +83,10 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        glClearColor(backgroundColor?.red ?: 1f, backgroundColor?.green ?: 1f,
-                backgroundColor?.blue ?: 1f, backgroundColor?.alpha ?: 1f)
+        glClearColor(
+            backgroundColor?.red ?: 1f, backgroundColor?.green ?: 1f,
+            backgroundColor?.blue ?: 1f, backgroundColor?.alpha ?: 1f
+        )
         enableTransparency()
     }
 
@@ -116,7 +119,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
             if (hasItemsToRemove) {
                 Log.d("PickerRenderer", "has removed items: ${removedItems.count()}")
                 removedItems.forEach { pickerItem ->
-                    circles.firstOrNull { pickerItem == it.pickerItem }?.let{
+                    circles.firstOrNull { pickerItem == it.pickerItem }?.let {
 
                         Engine.destroyBody(it.circleBody)
                         circles.remove(it)
@@ -194,8 +197,12 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
         val radiusY = radius * scaleY
 
         body.initialPosition.apply {
-            vertices?.put(8 * index, floatArrayOf(x - radiusX, y + radiusY, x - radiusX, y - radiusY,
-                    x + radiusX, y + radiusY, x + radiusX, y - radiusY))
+            vertices?.put(
+                8 * index, floatArrayOf(
+                    x - radiusX, y + radiusY, x - radiusX, y - radiusY,
+                    x + radiusX, y + radiusY, x + radiusX, y - radiusY
+                )
+            )
         }
     }
 
@@ -214,8 +221,10 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     }
 
     private fun attachShaders() {
-        programId = createProgram(createShader(GL_VERTEX_SHADER, vertexShader),
-                createShader(GL_FRAGMENT_SHADER, fragmentShader))
+        programId = createProgram(
+            createShader(GL_VERTEX_SHADER, vertexShader),
+            createShader(GL_FRAGMENT_SHADER, fragmentShader)
+        )
         glUseProgram(programId)
     }
 
@@ -230,16 +239,24 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
         glCompileShader(this)
     }
 
-    fun swipe(x: Float, y: Float) = Engine.swipe(x.convertValue(glView.width, scaleX),
-            y.convertValue(glView.height, scaleY))
+    fun swipe(x: Float, y: Float) = Engine.swipe(
+        x.convertValue(glView.width, scaleX),
+        y.convertValue(glView.height, scaleY)
+    )
 
     fun release() = Engine.release()
 
-//    private fun getItem(position: Vec2) = position.let {
-//        val x = it.x.convertPoint(glView.width, scaleX)
-//        val y = it.y.convertPoint(glView.height, scaleY)
-//        circles.find { Math.sqrt(((x - it.x).sqr() + (y - it.y).sqr()).toDouble()) <= it.radius }
-//    }
+    private fun getItem(position: Vec2) = position.let {
+        val x = it.x.convertPoint(glView.width, scaleX)
+        val y = it.y.convertPoint(glView.height, scaleY)
+        circles.find { Math.sqrt(((x - it.x).sqr() + (y - it.y).sqr()).toDouble()) <= it.radius }
+    }
+
+    fun onClick(x: Float, y: Float) = getItem(Vec2(x, glView.height - y))?.apply {
+        listener?.let {
+            it.onBubbleSelected(pickerItem)
+        }
+    }
 
 //    fun resize(x: Float, y: Float) = getItem(Vec2(x, glView.height - y))?.apply {
 //        if (Engine.resize(this, bubbleSize)) {
@@ -248,6 +265,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 //            }
 //        }
 //    }
+
 
     fun clear() {
         synchronized(this) {
