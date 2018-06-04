@@ -54,7 +54,7 @@ object Engine {
         toBeResized.forEach {
             it.key.circleBody.resize(getBubbleRadius(it.value), resizeStep)
         }
-        world.step(if (centerImmediately) 0.035f else moveStep, 11, 11)
+        world.step(1/60f, 11, 11)
         bodies.forEach { move(it) }
         toBeResized.keys.removeAll(toBeResized.filterKeys { it.circleBody.finished }.map { it.key })
 

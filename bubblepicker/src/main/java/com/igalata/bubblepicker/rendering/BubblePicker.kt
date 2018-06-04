@@ -1,12 +1,14 @@
 package com.igalata.bubblepicker.rendering
 
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.PixelFormat
 import android.opengl.GLSurfaceView
 import android.support.annotation.ColorInt
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.SurfaceHolder
+import android.view.View
 import com.igalata.bubblepicker.BubblePickerListener
 import com.igalata.bubblepicker.R
 import com.igalata.bubblepicker.adapter.BubblePickerAdapter
@@ -16,7 +18,7 @@ import com.igalata.bubblepicker.model.PickerItem
 /**
  * Created by irinagalata on 1/19/17.
  */
-class BubblePicker : GLSurfaceView {
+class BubblePicker : View {
 
     @ColorInt var background: Int = 0
         set(value) {
@@ -53,6 +55,8 @@ class BubblePicker : GLSurfaceView {
             renderer.centerImmediately = value
         }
 
+    var bubbleViewFactory: BubbleViewFactory
+
     private val renderer = PickerRenderer(this)
     private var startX = 0f
     private var startY = 0f
@@ -61,13 +65,8 @@ class BubblePicker : GLSurfaceView {
 
     constructor(context: Context?) : this(context, null)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
-        setZOrderOnTop(false)
-        setEGLContextClientVersion(2)
-        setEGLConfigChooser(8, 8, 8, 8, 16, 0)
-        holder.setFormat(PixelFormat.RGBA_8888)
-        setRenderer(renderer)
-        renderMode = RENDERMODE_CONTINUOUSLY
         attrs?.let { retrieveAttrubutes(attrs) }
+        bubbleViewFactory = BubbleViewFactory(context!!)
     }
 
     fun addItem(item: PickerItem) {
@@ -82,9 +81,16 @@ class BubblePicker : GLSurfaceView {
         renderer.resizeItem(item, newSize)
     }
 
-    override fun surfaceDestroyed(holder: SurfaceHolder?) {
-        renderer.clear()
-        super.surfaceDestroyed(holder)
+//    override fun surfaceDestroyed(holder: SurfaceHolder?) {
+//        renderer.clear()
+//        super.surfaceDestroyed(holder)
+//    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+
+        renderer.onDrawFrame()
+        invalidate()
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
