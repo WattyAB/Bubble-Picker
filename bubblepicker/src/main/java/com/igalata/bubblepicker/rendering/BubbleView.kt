@@ -22,11 +22,13 @@ class BubbleView(context: Context) : View(context) {
     var applianceInstanceId: String = ""
     var title: String = ""
 
-    var size: Double = 0.0
+    var size: Float = 80.0f
 
     init {
         // Update TextPaint and text measurements from attributes
         invalidateTextPaintAndMeasurements()
+        //layoutParams = ViewGroup.LayoutParams(size.toInt(), size.toInt())
+
     }
 
     private fun invalidateTextPaintAndMeasurements() {
@@ -41,13 +43,13 @@ class BubbleView(context: Context) : View(context) {
 
         invalidateTextPaintAndMeasurements()
 
-        val contentWidth = width - paddingLeft - paddingRight
-        val contentHeight = height - paddingTop - paddingBottom
+        val contentWidth = size - paddingLeft - paddingRight
+        val contentHeight = size - paddingTop - paddingBottom
 
         val radius = (contentHeight / 2).toFloat()
         canvas.drawCircle(
-            radius,
-            radius,
+            x,
+            y,
             radius,
             backgroundPaint
         )
@@ -55,9 +57,21 @@ class BubbleView(context: Context) : View(context) {
         // Draw the text.
         canvas.drawText(
             title,
-            (contentWidth - mTextWidth) / 2,
-            (contentHeight + mTextHeight) / 2,
+            ((contentWidth - mTextWidth) / 2),
+            ((contentHeight + mTextHeight) / 2),
             textPaint
         )
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        setMeasuredDimension(80, 80)
+    }
+
+
+}
+
+class BubbleViewFactory(private val context: Context) {
+    fun create(): BubbleView {
+        return BubbleView(context)
     }
 }

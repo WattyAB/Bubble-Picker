@@ -29,26 +29,33 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody, val bubb
         get() = circleBody.physicalBody.position
 
     private val bitmapSize = 256f
-    private val gradient: LinearGradient?
-        get() {
-            return pickerItem.gradient?.let {
-                val horizontal = it.direction == BubbleGradient.HORIZONTAL
-                LinearGradient(if (horizontal) 0f else bitmapSize / 2f,
-                        if (horizontal) bitmapSize / 2f else 0f,
-                        if (horizontal) bitmapSize else bitmapSize / 2f,
-                        if (horizontal) bitmapSize / 2f else bitmapSize,
-                        it.startColor, it.endColor, Shader.TileMode.CLAMP)
-            }
-        }
+//    private val gradient: LinearGradient?
+//        get() {
+//            return pickerItem.gradient?.let {
+//                val horizontal = it.direction == BubbleGradient.HORIZONTAL
+//                LinearGradient(if (horizontal) 0f else bitmapSize / 2f,
+//                        if (horizontal) bitmapSize / 2f else 0f,
+//                        if (horizontal) bitmapSize else bitmapSize / 2f,
+//                        if (horizontal) bitmapSize / 2f else bitmapSize,
+//                        it.startColor, it.endColor, Shader.TileMode.CLAMP)
+//            }
+//        }
 
     init {
-        drawBackground()
-        drawText()
+        //bubbleView.size = radius.toDouble()
+        bubbleView.x = x
+        bubbleView.y = y
         //drawIcon()
     }
 
-    fun update() {
+    fun draw(canvas: Canvas) {
+        bubbleView.x = x * (canvas.width / 2) + (canvas.width / 2)
+        bubbleView.y = y * (canvas.height / 2) + (canvas.height / 2)
+        bubbleView.size = circleBody.currentRadius * 2000
 
+        drawBackground()
+        drawText()
+        bubbleView.draw(canvas)
     }
 
     private fun drawBackground() {
@@ -56,7 +63,7 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody, val bubb
         bgPaint.style = Paint.Style.FILL
 
         pickerItem.color?.let { bgPaint.color = it }
-        pickerItem.gradient?.let { bgPaint.shader = gradient }
+        //pickerItem.gradient?.let { bgPaint.shader = gradient }
 
         bubbleView.backgroundPaint = bgPaint
     }
@@ -93,11 +100,5 @@ data class Item(val pickerItem: PickerItem, val circleBody: CircleBody, val bubb
 
             it.draw(canvas)
         }
-    }
-}
-
-class BubbleViewFactory(private val context: Context) {
-    fun create(): BubbleView {
-        return BubbleView(context)
     }
 }

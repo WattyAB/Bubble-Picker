@@ -1,9 +1,12 @@
 package com.igalata.bubblepicker.physics
 
+import android.graphics.Canvas
 import android.util.Log
+import com.igalata.bubblepicker.AndroidDebugDraw
 import com.igalata.bubblepicker.physics.Engine.centerImmediately
 import com.igalata.bubblepicker.rendering.Item
 import com.igalata.bubblepicker.sqr
+import org.jbox2d.callbacks.DebugDraw
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.World
 import java.util.*
@@ -50,18 +53,42 @@ object Engine {
         return bodies
     }
 
-    fun move(bodies: List<CircleBody>) {
+    private var androidDebugDraw: AndroidDebugDraw? = null
+
+    fun move(bodies: ArrayList<Item>, canvas: Canvas) {
         toBeResized.forEach {
             it.key.circleBody.resize(getBubbleRadius(it.value), resizeStep)
+            it.key.bubbleView.size = it.value
         }
-        world.step(1/60f, 11, 11)
-        bodies.forEach { move(it) }
+        if (androidDebugDraw == null) {
+            androidDebugDraw = AndroidDebugDraw(canvas)
+            androidDebugDraw?.flags = DebugDraw.e_shapeBit;
+        } else {
+            androidDebugDraw?.canvas = canvas
+        }
+        //world.setDebugDraw(androidDebugDraw)
+        world.step(0f, 11, 11)
+        //world.drawDebugData()
+        bodies.forEach { move(it, canvas) }
         toBeResized.keys.removeAll(toBeResized.filterKeys { it.circleBody.finished }.map { it.key })
 
         stepsCount++
         if (stepsCount >= 10) {
             centerImmediately = false
         }
+    }
+
+    private fun move(item: Item, canvas: Canvas) {
+        item.circleBody.physicalBody.apply {
+            val direction = gravityCenter.sub(position)
+            val distance = direction.length()
+            val gravity = getGravity(item.circleBody.currentRadius)
+            if (distance > moveStep * 200) {
+                applyForce(direction.mul(gravity / distance.sqr()), position)
+            }
+        }
+
+        item.draw(canvas)
     }
 
     fun swipe(x: Float, y: Float) {
@@ -106,17 +133,6 @@ object Engine {
 
     fun destroyBody(circleBody: CircleBody) {
         world.destroyBody(circleBody.physicalBody)
-    }
-
-    private fun move(body: CircleBody) {
-        body.physicalBody.apply {
-            val direction = gravityCenter.sub(position)
-            val distance = direction.length()
-            val gravity = getGravity(body.currentRadius)
-            if (distance > moveStep * 200) {
-                applyForce(direction.mul(gravity / distance.sqr()), position)
-            }
-        }
     }
 
     private fun getGravity(radius: Float): Float {

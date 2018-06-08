@@ -1,14 +1,13 @@
 package com.igalata.bubblepicker.rendering
 
+import android.graphics.Canvas
 import android.util.Log
-import android.view.View
 import com.igalata.bubblepicker.*
 import com.igalata.bubblepicker.model.Color
 import com.igalata.bubblepicker.model.PickerItem
 import com.igalata.bubblepicker.physics.Engine
 import org.jbox2d.common.Vec2
 import java.util.*
-import javax.microedition.khronos.opengles.GL10
 
 /**
  * Created by irinagalata on 1/19/17.
@@ -71,7 +70,7 @@ class PickerRenderer(private val bubblePicker: BubblePicker) {
         }
     }
 
-    fun onDrawFrame() {
+    fun onDrawFrame(canvas: Canvas) {
         synchronized(this) {
             if (hasItemsToAdd) {
                 Log.d("PickerRenderer", "has new items: ${newItems.count()}")
@@ -119,7 +118,7 @@ class PickerRenderer(private val bubblePicker: BubblePicker) {
             }
         }
         calculateVertices()
-        Engine.move(circles.map { it.circleBody })
+        Engine.move(circles, canvas)
     }
 
     private fun resizeArrays() {
@@ -173,15 +172,15 @@ class PickerRenderer(private val bubblePicker: BubblePicker) {
 
     fun release() = Engine.release()
 
-    private fun getItem(position: Vec2) = position.let {
-        val x = it.x.convertPoint(bubblePicker.width, scaleX)
-        val y = it.y.convertPoint(bubblePicker.height, scaleY)
-        circles.find { Math.sqrt(((x - it.x).sqr() + (y - it.y).sqr()).toDouble()) <= it.radius }
-    }
-
-    fun onClick(x: Float, y: Float) = getItem(Vec2(x, bubblePicker.height - y))?.apply {
-        listener?.onBubbleSelected(pickerItem)
-    }
+//    private fun getItem(position: Vec2) = position.let {
+//        val x = it.x.convertPoint(bubblePicker.width, scaleX)
+//        val y = it.y.convertPoint(bubblePicker.height, scaleY)
+//        circles.find { Math.sqrt(((x - it.x).sqr() + (y - it.y).sqr()).toDouble()) <= it.radius }
+//    }
+//
+//    fun onClick(x: Float, y: Float) = getItem(Vec2(x, bubblePicker.height - y))?.apply {
+//        listener?.onBubbleSelected(pickerItem)
+//    }
 
     fun clear() {
         synchronized(this) {

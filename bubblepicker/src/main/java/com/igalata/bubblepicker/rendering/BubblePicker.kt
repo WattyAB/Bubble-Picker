@@ -2,12 +2,9 @@ package com.igalata.bubblepicker.rendering
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.PixelFormat
-import android.opengl.GLSurfaceView
 import android.support.annotation.ColorInt
 import android.util.AttributeSet
 import android.view.MotionEvent
-import android.view.SurfaceHolder
 import android.view.View
 import com.igalata.bubblepicker.BubblePickerListener
 import com.igalata.bubblepicker.R
@@ -89,36 +86,36 @@ class BubblePicker : View {
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        renderer.onDrawFrame()
+        renderer.onDrawFrame(canvas!!)
         invalidate()
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                startX = event.x
-                startY = event.y
-                previousX = event.x
-                previousY = event.y
-            }
-            MotionEvent.ACTION_UP -> {
-                if (isClick(event)) renderer.onClick(event.x, event.y)
-                renderer.release()
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (isSwipe(event)) {
-                    renderer.swipe(previousX - event.x, previousY - event.y)
-                    previousX = event.x
-                    previousY = event.y
-                } else {
-                    release()
-                }
-            }
-            else -> release()
-        }
-
-        return true
-    }
+//    override fun onTouchEvent(event: MotionEvent): Boolean {
+//        when (event.action) {
+//            MotionEvent.ACTION_DOWN -> {
+//                startX = event.x
+//                startY = event.y
+//                previousX = event.x
+//                previousY = event.y
+//            }
+//            MotionEvent.ACTION_UP -> {
+//                if (isClick(event)) renderer.onClick(event.x, event.y)
+//                renderer.release()
+//            }
+//            MotionEvent.ACTION_MOVE -> {
+//                if (isSwipe(event)) {
+//                    renderer.swipe(previousX - event.x, previousY - event.y)
+//                    previousX = event.x
+//                    previousY = event.y
+//                } else {
+//                    release()
+//                }
+//            }
+//            else -> release()
+//        }
+//
+//        return true
+//    }
 
     private fun release() = postDelayed({ renderer.release() }, 0)
 
