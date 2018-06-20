@@ -1,7 +1,6 @@
 package com.igalata.bubblepicker.physics
 
 import android.util.Log
-import com.igalata.bubblepicker.physics.Engine.centerImmediately
 import com.igalata.bubblepicker.rendering.Item
 import com.igalata.bubblepicker.sqr
 import org.jbox2d.common.Vec2
@@ -12,7 +11,7 @@ import kotlin.collections.HashMap
 /**
  * Created by irinagalata on 1/26/17.
  */
-object Engine {
+class Engine {
     val selectedBodies: List<CircleBody>
         get() = emptyList() //bodies.filter { it.hasBeenResized || it.toBeResized || it.isResizing }
     var maxSelectedCount: Int? = null
@@ -24,7 +23,7 @@ object Engine {
     private var defaultRadius = 0.17f
 
     private val world = World(Vec2(0f, 0f), false)
-    private const val moveStep = 0.0005f
+    private val moveStep = 0.0005f
     private val resizeStep = 0.001f
 
     private var borders: ArrayList<Border> = ArrayList()
@@ -33,7 +32,7 @@ object Engine {
     private var touch = false
     private var gravityCenter = Vec2(0f, 0f)
     private val toBeResized = HashMap<Item, Float>()
-    private const val startX = 0.5f
+    private val startX = 0.5f
     private var stepsCount = 0
 
     fun build(bodiesCount: Int, scaleX: Float, scaleY: Float): List<CircleBody> {

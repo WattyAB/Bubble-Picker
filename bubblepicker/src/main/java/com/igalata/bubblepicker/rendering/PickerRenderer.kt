@@ -25,19 +25,20 @@ import javax.microedition.khronos.opengles.GL10
  */
 class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
+    val engine = Engine()
     var backgroundColor: Color? = null
     var maxSelectedCount: Int? = null
         set(value) {
-            Engine.maxSelectedCount = value
+            engine.maxSelectedCount = value
         }
     var listener: BubblePickerListener? = null
     var items = ArrayList<PickerItem>()
     val selectedItems: List<PickerItem?>
-        get() = Engine.selectedBodies.map { circles.firstOrNull { circle -> circle.circleBody == it }?.pickerItem }
+        get() = engine.selectedBodies.map { circles.firstOrNull { circle -> circle.circleBody == it }?.pickerItem }
     var centerImmediately = false
         set(value) {
             field = value
-            Engine.centerImmediately = value
+            engine.centerImmediately = value
         }
 
     private var programId = 0
@@ -100,7 +101,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
             if (hasItemsToAdd) {
                 Log.d("PickerRenderer", "has new items: ${newItems.count()}")
                 newItems.forEach {
-                    val newBody = Engine.build(1, scaleX, scaleY).last()
+                    val newBody = engine.build(1, scaleX, scaleY).last()
                     circles.add(Item(it, newBody))
                     items.add(it)
                 }
@@ -121,7 +122,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
                 removedItems.forEach { pickerItem ->
                     circles.firstOrNull { pickerItem == it.pickerItem }?.let {
 
-                        Engine.destroyBody(it.circleBody)
+                        engine.destroyBody(it.circleBody)
                         circles.remove(it)
                     }
                     items.remove(pickerItem)
@@ -137,14 +138,14 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
                 //Log.d("PickerRenderer", "has hasBeenResized items: ${resizedItems.count()}")
                 resizedItems.forEach { (item, finalSize) ->
                     circles.firstOrNull { it.pickerItem == item }?.let {
-                        Engine.resize(it, finalSize)
+                        engine.resize(it, finalSize)
                     }
                 }
                 hasItemsToResize = false
             }
         }
         calculateVertices()
-        Engine.move(circles.map { it.circleBody })
+        engine.move(circles.map { it.circleBody })
         drawFrame()
     }
 
@@ -162,12 +163,12 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
     private fun initialize() {
         clear()
-        Engine.centerImmediately = centerImmediately
-        Engine.createBorders(scaleX, scaleY)
-        Engine.build(items.size, scaleX, scaleY).forEachIndexed { index, body ->
+        engine.centerImmediately = centerImmediately
+        engine.createBorders(scaleX, scaleY)
+        engine.build(items.size, scaleX, scaleY).forEachIndexed { index, body ->
             circles.add(Item(items[index], body))
         }
-        items.forEach { if (it.isSelected) Engine.resize(circles.first { circle -> circle.pickerItem == it }, 50F) }
+        items.forEach { if (it.isSelected) engine.resize(circles.first { circle -> circle.pickerItem == it }, 50F) }
         if (textureIds == null) textureIds = IntArray(circles.size * 2)
         initializeArrays()
     }
@@ -241,12 +242,12 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
         glCompileShader(this)
     }
 
-    fun swipe(x: Float, y: Float) = Engine.swipe(
+    fun swipe(x: Float, y: Float) = engine.swipe(
         x.convertValue(glView.width, scaleX),
         y.convertValue(glView.height, scaleY)
     )
 
-    fun release() = Engine.release()
+    fun release() = engine.release()
 
     private fun getItem(position: Vec2) = position.let {
         val x = it.x.convertPoint(glView.width, scaleX)
@@ -271,7 +272,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
     fun clear() {
         synchronized(this) {
-            circles.forEach { Engine.destroyBody(it.circleBody) }
+            circles.forEach { engine.destroyBody(it.circleBody) }
             circles.clear()
             items.clear()
             newItems.clear()
@@ -282,7 +283,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
             vertices = null
             textureVertices = null
             textureIds = null
-            Engine.clear()
+            engine.clear()
         }
     }
 }
