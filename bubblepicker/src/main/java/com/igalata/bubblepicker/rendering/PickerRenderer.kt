@@ -49,13 +49,8 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     private var textureVertices: FloatArray? = null
     private var textureIds: IntArray? = null
 
-    private var hasItemsToAdd = false
-    private var hasItemsToRemove = false
-    private var hasItemsToResize = false
-
-    private val newItems = mutableListOf<PickerItem>()
     private val removedItems = mutableListOf<PickerItem>()
-    private val resizedItems = hashMapOf<PickerItem, Float>()
+    private val updatedItems = mutableListOf<PickerItem>()
 
     private val scaleX: Float
         get() = if (glView.width < glView.height) glView.height.toFloat() / glView.width.toFloat() else 1f
@@ -63,24 +58,15 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
         get() = if (glView.width < glView.height) 1f else glView.width.toFloat() / glView.height.toFloat()
     private val circles = ArrayList<Item>()
 
-    fun addItem(pickerItem: PickerItem) {
+    fun updateItem(pickerItem: PickerItem) {
         synchronized(this) {
-            newItems.add(pickerItem)
-            hasItemsToAdd = true
+            updatedItems.add(pickerItem)
         }
     }
 
     fun removeItem(pickerItem: PickerItem) {
         synchronized(this) {
             removedItems.add(pickerItem)
-            hasItemsToRemove = true
-        }
-    }
-
-    fun resizeItem(pickerItem: PickerItem, newSize: Float) {
-        synchronized(this) {
-            resizedItems[pickerItem] = newSize
-            hasItemsToResize = true
         }
     }
 
@@ -100,26 +86,25 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     override fun onDrawFrame(gl: GL10?) {
         hasBegunDrawing = true
         synchronized(this) {
-            if (hasItemsToAdd) {
-                Log.d("PickerRenderer", "has new items: ${newItems.count()}")
-                newItems.forEach {
+            updatedItems.forEach { pickerItem ->
+                if (circles.any { it.pickerItem.id == pickerItem.id }) {
+                    circles.firstOrNull { it.pickerItem == pickerItem }?.let {
+                        engine.resize(it, pickerItem.size)
+                    }
+                } else {
                     val newBody = engine.build(1, scaleX, scaleY).last()
-                    circles.add(Item(it, newBody))
-                    items.add(it)
-                }
-                resizeArrays()
-                newItems.forEach { pickerItem ->
+                    circles.add(Item(pickerItem, newBody))
+                    items.add(pickerItem)
+                    resizeArrays()
                     val circle = circles.first { it.pickerItem == pickerItem }
                     initializeItem(circle, circles.indexOf(circle))
+                    updateBuffers()
+                    Log.d("PickerRenderer", "circles.count: ${circles.size}, items.size: ${items.size}")
                 }
-                updateBuffers()
-                newItems.clear()
-                hasItemsToAdd = false
-                Log.d("PickerRenderer", "circles.count: ${circles.size}, items.size: ${items.size}")
             }
         }
         synchronized(this) {
-            if (hasItemsToRemove) {
+            if (removedItems.any()) {
                 Log.d("PickerRenderer", "has removed items: ${removedItems.count()}")
                 removedItems.forEach { pickerItem ->
                     circles.firstOrNull { pickerItem == it.pickerItem }?.let {
@@ -132,18 +117,6 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
                 removedItems.clear()
                 resizeArrays()
                 updateBuffers()
-                hasItemsToRemove = false
-            }
-        }
-        synchronized(this) {
-            if (hasItemsToResize) {
-                //Log.d("PickerRenderer", "has hasBeenResized items: ${resizedItems.count()}")
-                resizedItems.forEach { (item, finalSize) ->
-                    circles.firstOrNull { it.pickerItem == item }?.let {
-                        engine.resize(it, finalSize)
-                    }
-                }
-                hasItemsToResize = false
             }
         }
         calculateVertices()
@@ -277,9 +250,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
             circles.forEach { engine.destroyBody(it.circleBody) }
             circles.clear()
             items.clear()
-            newItems.clear()
             removedItems.clear()
-            resizedItems.clear()
             verticesBuffer = null
             uvBuffer = null
             vertices = null

@@ -19,4 +19,5 @@ data class PickerItem @JvmOverloads constructor(val id: String? = null,
                                                 @ColorInt val textColor: Int? = null,
                                                 var textSize: Float = 40f,
                                                 var backgroundImage: Drawable? = null,
-                                                var isSelected: Boolean = false)
+                                                var isSelected: Boolean = false,
+                                                val size: Float)

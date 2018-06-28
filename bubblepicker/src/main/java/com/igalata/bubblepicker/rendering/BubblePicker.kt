@@ -75,16 +75,12 @@ class BubblePicker : GLSurfaceView {
         attrs?.let { retrieveAttrubutes(attrs) }
     }
 
-    fun addItem(item: PickerItem) {
-        renderer.addItem(item)
+    fun updateItem(item: PickerItem) {
+        renderer.updateItem(item)
     }
 
     fun removeItem(item: PickerItem) {
         renderer.removeItem(item)
-    }
-
-    fun resizeItem(item: PickerItem, newSize: Float) {
-        renderer.resizeItem(item, newSize)
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
