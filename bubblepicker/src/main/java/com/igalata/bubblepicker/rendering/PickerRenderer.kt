@@ -63,8 +63,8 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
     fun addItem(pickerItem: PickerItem) {
         synchronized(this) {
-            val applianceInstanceId = pickerItem.id ?: return
-            newItems[applianceInstanceId] = pickerItem
+            val pickerId = pickerItem.id ?: return
+            newItems[pickerId] = pickerItem
 
             hasItemsToAdd = true
         }
