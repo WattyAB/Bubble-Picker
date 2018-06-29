@@ -51,7 +51,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     private var hasItemsToRemove = false
     private var hasItemsToResize = false
 
-    private val newItems = mutableListOf<PickerItem>()
+    private val newItems = mutableMapOf<String, PickerItem>()
     private val removedItems = mutableListOf<PickerItem>()
     private val resizedItems = hashMapOf<PickerItem, Float>()
 
@@ -63,17 +63,9 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
     fun addItem(pickerItem: PickerItem) {
         synchronized(this) {
-            var existingToRemove: PickerItem? = null
-            newItems.forEach { item ->
-                if (item.id == pickerItem.id) {
-                    existingToRemove = item
-                }
-            }
-            existingToRemove?.let {
-                newItems.remove(it)
-            }
+            val applianceInstanceId = pickerItem.id ?: return
+            newItems[applianceInstanceId] = pickerItem
 
-            newItems.add(pickerItem)
             hasItemsToAdd = true
         }
     }
@@ -109,13 +101,13 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
         synchronized(this) {
             if (hasItemsToAdd) {
                 Log.d("PickerRenderer", "has new items: ${newItems.count()}")
-                newItems.forEach {
+                newItems.values.forEach {
                     val newBody = engine.build(1, scaleX, scaleY).last()
                     circles.add(Item(it, newBody))
                     items.add(it)
                 }
                 resizeArrays()
-                newItems.forEach { pickerItem ->
+                newItems.values.forEach { pickerItem ->
                     val circle = circles.first { it.pickerItem == pickerItem }
                     initializeItem(circle, circles.indexOf(circle))
                 }
