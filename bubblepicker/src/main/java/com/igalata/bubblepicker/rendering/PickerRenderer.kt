@@ -65,6 +65,16 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
     fun addItem(pickerItem: PickerItem) {
         synchronized(this) {
+            var existingToRemove: PickerItem? = null
+            newItems.forEach { item ->
+                if (item.id == pickerItem.id) {
+                    existingToRemove = item
+                }
+            }
+            existingToRemove?.let {
+                newItems.remove(it)
+            }
+
             newItems.add(pickerItem)
             hasItemsToAdd = true
         }
