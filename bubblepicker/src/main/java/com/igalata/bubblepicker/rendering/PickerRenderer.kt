@@ -24,8 +24,6 @@ import javax.microedition.khronos.opengles.GL10
  * Created by irinagalata on 1/19/17.
  */
 class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
-    var hasBegunDrawing = false
-
     val engine = Engine()
     var backgroundColor: Color? = null
     var maxSelectedCount: Int? = null
@@ -108,7 +106,6 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        hasBegunDrawing = true
         synchronized(this) {
             if (hasItemsToAdd) {
                 Log.d("PickerRenderer", "has new items: ${newItems.count()}")
