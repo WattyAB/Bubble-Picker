@@ -24,8 +24,6 @@ import javax.microedition.khronos.opengles.GL10
  * Created by irinagalata on 1/19/17.
  */
 class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
-    var hasBegunDrawing = false
-
     val engine = Engine()
     var backgroundColor: Color? = null
     var maxSelectedCount: Int? = null
@@ -53,7 +51,7 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     private var hasItemsToRemove = false
     private var hasItemsToResize = false
 
-    private val newItems = mutableListOf<PickerItem>()
+    private val newItems = mutableMapOf<String, PickerItem>()
     private val removedItems = mutableListOf<PickerItem>()
     private val resizedItems = hashMapOf<PickerItem, Float>()
 
@@ -65,7 +63,9 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
 
     fun addItem(pickerItem: PickerItem) {
         synchronized(this) {
-            newItems.add(pickerItem)
+            val pickerId = pickerItem.id ?: return
+            newItems[pickerId] = pickerItem
+
             hasItemsToAdd = true
         }
     }
@@ -98,17 +98,16 @@ class PickerRenderer(val glView: View) : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        hasBegunDrawing = true
         synchronized(this) {
             if (hasItemsToAdd) {
                 Log.d("PickerRenderer", "has new items: ${newItems.count()}")
-                newItems.forEach {
+                newItems.values.forEach {
                     val newBody = engine.build(1, scaleX, scaleY).last()
                     circles.add(Item(it, newBody))
                     items.add(it)
                 }
                 resizeArrays()
-                newItems.forEach { pickerItem ->
+                newItems.values.forEach { pickerItem ->
                     val circle = circles.first { it.pickerItem == pickerItem }
                     initializeItem(circle, circles.indexOf(circle))
                 }

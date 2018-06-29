@@ -17,12 +17,6 @@ import com.igalata.bubblepicker.model.PickerItem
  * Created by irinagalata on 1/19/17.
  */
 class BubblePicker : GLSurfaceView {
-    var hasBegunDrawing = false
-        get() {
-            return renderer.hasBegunDrawing
-        }
-
-
     @ColorInt var background: Int = 0
         set(value) {
             field = value
